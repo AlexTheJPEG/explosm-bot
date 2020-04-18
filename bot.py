@@ -84,5 +84,6 @@ def tweet_comic():
         print(f"Oh noes! Something terrible happened! Error code {website_response.status_code}")
 
 
-if __name__ == "__main__":
+while True:
     tweet_comic()
+    time.sleep(60 * 60)
