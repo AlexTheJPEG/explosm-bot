@@ -9,6 +9,7 @@ verify_ssl = true
 tweepy = "*"
 bs4 = "*"
 pillow = "*"
+flask = "*"
 
 [requires]
 python_version = "3.8"
