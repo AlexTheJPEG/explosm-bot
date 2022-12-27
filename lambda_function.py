@@ -46,7 +46,7 @@ def combine_images(image_names, border_size=0) -> None:
         combined_image.paste(image, (x_offset, y_offset))
         x_offset += image.size[0]
 
-    combined_image.save("comic.png", format="PNG")
+    combined_image.save("/tmp/comic.png", format="PNG")
 
 
 def tweet_comic() -> None:
@@ -60,9 +60,9 @@ def tweet_comic() -> None:
 
     # Save each panel as a temporary file
     panels = panels_json["panels"]
-    filenames = [panel["filename"] for panel in panels]
+    filenames = [f"/tmp/{panel['filename']}" for panel in panels]
     for filename in filenames:
-        with requests.get(f"https://rcg-cdn.explosm.net/panels/{filename}", "wb") as panel_image:
+        with requests.get(f"https://rcg-cdn.explosm.net/panels/{filename.removeprefix('/tmp/')}", "wb") as panel_image:
             with open(filename, "wb") as file:
                 file.write(panel_image.content)
 
@@ -75,15 +75,15 @@ def tweet_comic() -> None:
 
     # Upload the image onto Twitter
     api = twitter_api()
-    upload = api.media_upload("comic.png")
+    upload = api.media_upload("/tmp/comic.png")
     media_id = [upload.media_id]
 
     # Post the image with its permalink
     permalink = "".join(panel["slug"] for panel in panels)
-    api.update_status(status=permalink, media_ids=media_id)
+    api.update_status(status=f"https://explosm.net/rcg/{permalink}", media_ids=media_id)
 
     # Remove the temporary file
-    os.remove("comic.png")
+    os.remove("/tmp/comic.png")
 
 
 def lambda_handler(event, context):
