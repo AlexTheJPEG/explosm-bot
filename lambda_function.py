@@ -20,9 +20,7 @@ def get_twitter_keys() -> dict:
         WithDecryption=True,
     )
 
-    keys = {
-        parameter["Name"]: parameter["Value"] for parameter in parameters["Parameters"]
-    }
+    keys = {parameter["Name"]: parameter["Value"] for parameter in parameters["Parameters"]}
     return keys
 
 
@@ -35,12 +33,8 @@ def twitter_api() -> tweepy.API:
 
 
 def combine_images(image_names, border_size=0) -> None:
-    combined_image_width = (
-        sum(Image.open(name).size[0] for name in image_names) + 2 * border_size
-    )
-    combined_image_height = (
-        max(Image.open(name).size[1] for name in image_names) + 2 * border_size
-    )
+    combined_image_width = sum(Image.open(name).size[0] for name in image_names) + 2 * border_size
+    combined_image_height = max(Image.open(name).size[1] for name in image_names) + 2 * border_size
     combined_image = Image.new(
         "RGB", (combined_image_width, combined_image_height), color=(255, 255, 255)
     )
@@ -61,18 +55,14 @@ def tweet_comic() -> None:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36"
     }
 
-    with requests.get(
-        "https://explosm.net/api/get-random-panels", headers=headers
-    ) as response:
+    with requests.get("https://explosm.net/api/get-random-panels", headers=headers) as response:
         panels_json = json.loads(response.text)
 
     # Save each panel as a temporary file
     panels = panels_json["panels"]
     filenames = [panel["filename"] for panel in panels]
     for filename in filenames:
-        with requests.get(
-            f"https://rcg-cdn.explosm.net/panels/{filename}", "wb"
-        ) as panel_image:
+        with requests.get(f"https://rcg-cdn.explosm.net/panels/{filename}", "wb") as panel_image:
             with open(filename, "wb") as file:
                 file.write(panel_image.content)
 
