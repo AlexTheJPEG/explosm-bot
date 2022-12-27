@@ -28,6 +28,7 @@ mypy-extensions = ">=0.4.3"
 pathspec = ">=0.9.0"
 platformdirs = ">=2"
 tomli = {version = ">=1.1.0", markers = "python_full_version < \"3.11.0a7\""}
+typing-extensions = {version = ">=3.10.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 colorama = ["colorama (>=0.4.3)"]
@@ -408,6 +409,18 @@ socks = ["requests[socks] (>=2.27.0,<3)"]
 test = ["vcrpy (>=1.10.3)"]
 
 [[package]]
+name = "typing-extensions"
+version = "4.4.0"
+description = "Backported and Experimental Type Hints for Python 3.7+"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
+    {file = "typing_extensions-4.4.0.tar.gz", hash = "sha256:1511434bb92bf8dd198c12b1cc812e800d4181cfcb867674e0f8279cc93087aa"},
+]
+
+[[package]]
 name = "urllib3"
 version = "1.26.13"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -426,5 +439,5 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.10"
-content-hash = "2324da7251f5e1eb9e0065203829fc65e579ffc237e79e38f94193a2c5809d86"
+python-versions = "^3.9"
+content-hash = "abbb1fa710a0f52d61f059c87263c19321adc4d09666d474644c16a811dbb4ef"
