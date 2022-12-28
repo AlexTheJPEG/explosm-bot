@@ -69,10 +69,6 @@ def tweet_comic() -> None:
     # Combine the three panels into one image
     combine_images(filenames, 20)
 
-    # Remove the panel files
-    for filename in filenames:
-        os.remove(filename)
-
     # Upload the image onto Twitter
     api = twitter_api()
     upload = api.media_upload("/tmp/comic.png")
@@ -81,9 +77,6 @@ def tweet_comic() -> None:
     # Post the image with its permalink
     permalink = "".join(panel["slug"] for panel in panels)
     api.update_status(status=f"https://explosm.net/rcg/{permalink}", media_ids=media_id)
-
-    # Remove the temporary file
-    os.remove("/tmp/comic.png")
 
 
 def lambda_handler(event, context):
