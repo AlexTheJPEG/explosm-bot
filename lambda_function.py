@@ -12,6 +12,7 @@ def get_mastodon_keys() -> dict:
     parameters = aws_client.get_parameters(
         Names=[
             "mastodon_access_token",
+            "mastodon_url",
         ],
         WithDecryption=True,
     )
@@ -24,7 +25,7 @@ def mastodon_api() -> Mastodon:
     keys = get_mastodon_keys()
     return Mastodon(
         access_token=keys["mastodon_access_token"],
-        api_base_url="https://botsin.space",
+        api_base_url=keys["mastodon_url"],
     )
 
 
