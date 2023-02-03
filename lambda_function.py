@@ -48,7 +48,10 @@ def get_mastodon_keys() -> dict:
 
 def mastodon_api() -> Mastodon:
     keys = get_mastodon_keys()
-    return Mastodon(access_token=keys["mastodon_access_token"])
+    return Mastodon(
+        access_token=keys["mastodon_access_token"],
+        api_base_url="https://botsin.space",
+    )
 
 
 def combine_images(image_names, border_size=0) -> None:
