@@ -3,6 +3,7 @@ import json
 import boto3
 import requests
 import tweepy
+from mastodon import Mastodon
 from PIL import Image
 
 
@@ -29,6 +30,25 @@ def twitter_api() -> tweepy.API:
     auth = tweepy.OAuthHandler(keys["twitter_api_key"], keys["twitter_api_secret"])
     auth.set_access_token(keys["twitter_access_token"], keys["twitter_access_secret"])
     return tweepy.API(auth)
+
+
+def get_mastodon_keys() -> dict:
+    aws_client = boto3.client("ssm")
+
+    parameters = aws_client.get_parameters(
+        Names=[
+            "mastodon_access_token",
+        ],
+        WithDecryption=True,
+    )
+
+    keys = {parameter["Name"]: parameter["Value"] for parameter in parameters["Parameters"]}
+    return keys
+
+
+def mastodon_api() -> Mastodon:
+    keys = get_mastodon_keys()
+    return Mastodon(access_token=keys["mastodon_access_token"])
 
 
 def combine_images(image_names, border_size=0) -> None:
