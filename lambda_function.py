@@ -1,21 +1,18 @@
 import json
-import os
 
 import boto3
 import requests
-import tweepy
+from mastodon import Mastodon
 from PIL import Image
 
 
-def get_twitter_keys() -> dict:
+def get_mastodon_keys() -> dict:
     aws_client = boto3.client("ssm")
 
     parameters = aws_client.get_parameters(
         Names=[
-            "twitter_api_key",
-            "twitter_api_secret",
-            "twitter_access_token",
-            "twitter_access_secret",
+            "mastodon_access_token",
+            "mastodon_url",
         ],
         WithDecryption=True,
     )
@@ -24,12 +21,12 @@ def get_twitter_keys() -> dict:
     return keys
 
 
-def twitter_api() -> tweepy.API:
-    keys = get_twitter_keys()
-
-    auth = tweepy.OAuthHandler(keys["twitter_api_key"], keys["twitter_api_secret"])
-    auth.set_access_token(keys["twitter_access_token"], keys["twitter_access_secret"])
-    return tweepy.API(auth)
+def mastodon_api() -> Mastodon:
+    keys = get_mastodon_keys()
+    return Mastodon(
+        access_token=keys["mastodon_access_token"],
+        api_base_url=keys["mastodon_url"],
+    )
 
 
 def combine_images(image_names, border_size=0) -> None:
@@ -49,7 +46,7 @@ def combine_images(image_names, border_size=0) -> None:
     combined_image.save("/tmp/comic.png", format="PNG")
 
 
-def tweet_comic() -> None:
+def toot_comic() -> None:
     # Get the three panels from the randomly-generated comic
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36"
@@ -67,17 +64,20 @@ def tweet_comic() -> None:
                 file.write(panel_image.content)
 
     # Combine the three panels into one image
-    combine_images(filenames, 20)
+    combine_images(filenames, 50)
 
     # Upload the image onto Twitter
-    api = twitter_api()
-    upload = api.media_upload("/tmp/comic.png")
-    media_id = [upload.media_id]
+    api = mastodon_api()
+    media_upload = api.media_post("/tmp/comic.png")
 
     # Post the image with its permalink
     permalink = "".join(panel["slug"] for panel in panels)
-    api.update_status(status=f"https://explosm.net/rcg/{permalink}", media_ids=media_id)
+    api.status_post(
+        status=f"https://explosm.net/rcg/{permalink}",
+        media_ids=media_upload,
+        sensitive=True,
+    )
 
 
 def lambda_handler(event, context):
-    tweet_comic()
+    toot_comic()
