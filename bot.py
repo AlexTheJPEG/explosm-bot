@@ -1,10 +1,14 @@
 import json
+import logging
 import os
+import time
 
 import requests
+import schedule
 from mastodon import Mastodon
 from PIL import Image
 
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 CW = "Possible CW: strong language, sexual imagery, bodily fluds, references to drugs & alcohol, blood & gore"
 
 
@@ -45,17 +49,20 @@ def toot_comic(api: Mastodon) -> None:
     # Combine the three panels into one image
     combine_images(filenames, 50)
 
-    # Upload the image onto Twitter
+    # Upload the image
     media_upload = api.media_post("/tmp/comic.png")
 
     # Post the image with its permalink
     permalink = "".join(panel["slug"] for panel in panels)
-    api.status_post(
+    post = api.status_post(
         status=f"https://explosm.net/rcg/{permalink}",
         spoiler_text=CW,
         media_ids=media_upload,
         sensitive=True,
     )
+    
+    logging.info("Explosm Bot: Posted image")
+    logging.debug(post)
 
 
 if __name__ == "__main__":
@@ -66,4 +73,12 @@ if __name__ == "__main__":
         access_token=os.getenv("MASTODON_ACCESS_TOKEN"),
         api_base_url=os.getenv("MASTODON_URL"),
     )
-    toot_comic(api)
+    logging.info("Explosm Bot: Created API instance")
+
+    schedule.every().hour.at(":00").do(toot_comic, api=api)
+    schedule.every().hour.at(":30").do(toot_comic, api=api)
+    logging.info("Explosm Bot: Created schedule")
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
