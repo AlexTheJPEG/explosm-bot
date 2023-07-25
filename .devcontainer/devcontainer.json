@@ -5,5 +5,12 @@
       "version": "3.9"
     },
     "ghcr.io/devcontainers-contrib/features/poetry:2": {}
-  }
+},
+"customizations": {
+	"vscode": {
+		"extensions": [
+			"charliermarsh.ruff"
+		]
+	}
+}
 }

@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "explosm-bot"
-version = "1.0.0"
-description = "A Twitter bot that prints randomly-generated comics"
-authors = ["Alex The JPEG <alexthejpeg@gmail.com>"]
+version = "1.1.0"
+description = "A Mastodon bot that prints randomly-generated comics"
+authors = ["Alex The JPEG <alexthejpeg@proton.me>"]
 license = "MIT"
 readme = "README.md"
 
@@ -13,8 +13,12 @@ Pillow = "^9.3.0"
 mastodon-py = "^1.8.0"
 
 [tool.poetry.group.dev.dependencies]
-boto3 = "^1.26.37"
 black = "^22.12.0"
+python-dotenv = "^1.0.0"
+ruff = "^0.0.280"
+
+[tool.ruff]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]
