@@ -128,5 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-deployment.zip
-layer.zip
+# Ruff cache
+.ruff_cache/

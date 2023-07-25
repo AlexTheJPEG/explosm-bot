@@ -1,35 +1,18 @@
 import json
+import logging
+import os
+import time
 
-import boto3
 import requests
+import schedule
 from mastodon import Mastodon
 from PIL import Image
 
-
-def get_mastodon_keys() -> dict:
-    aws_client = boto3.client("ssm")
-
-    parameters = aws_client.get_parameters(
-        Names=[
-            "mastodon_access_token",
-            "mastodon_url",
-        ],
-        WithDecryption=True,
-    )
-
-    keys = {parameter["Name"]: parameter["Value"] for parameter in parameters["Parameters"]}
-    return keys
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+CW = "Possible CW: strong language, sexual imagery, bodily fluds, references to drugs & alcohol, blood & gore"
 
 
-def mastodon_api() -> Mastodon:
-    keys = get_mastodon_keys()
-    return Mastodon(
-        access_token=keys["mastodon_access_token"],
-        api_base_url=keys["mastodon_url"],
-    )
-
-
-def combine_images(image_names, border_size=0) -> None:
+def combine_images(image_names: list[str], border_size: int = 0) -> None:
     combined_image_width = sum(Image.open(name).size[0] for name in image_names) + 2 * border_size
     combined_image_height = max(Image.open(name).size[1] for name in image_names) + 2 * border_size
     combined_image = Image.new(
@@ -46,10 +29,10 @@ def combine_images(image_names, border_size=0) -> None:
     combined_image.save("/tmp/comic.png", format="PNG")
 
 
-def toot_comic() -> None:
+def toot_comic(api: Mastodon) -> None:
     # Get the three panels from the randomly-generated comic
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36"  # noqa: E501
     }
 
     with requests.get("https://explosm.net/api/get-random-panels", headers=headers) as response:
@@ -66,18 +49,36 @@ def toot_comic() -> None:
     # Combine the three panels into one image
     combine_images(filenames, 50)
 
-    # Upload the image onto Twitter
-    api = mastodon_api()
+    # Upload the image
     media_upload = api.media_post("/tmp/comic.png")
 
     # Post the image with its permalink
     permalink = "".join(panel["slug"] for panel in panels)
-    api.status_post(
+    post = api.status_post(
         status=f"https://explosm.net/rcg/{permalink}",
+        spoiler_text=CW,
         media_ids=media_upload,
         sensitive=True,
     )
+    
+    logging.info("Explosm Bot: Posted image")
+    logging.debug(post)
 
 
-def lambda_handler(event, context):
-    toot_comic()
+if __name__ == "__main__":
+    # Uncomment the two lines below to use a .env file
+    # from dotenv import load_dotenv
+    # load_dotenv()
+    api = Mastodon(
+        access_token=os.getenv("MASTODON_ACCESS_TOKEN"),
+        api_base_url=os.getenv("MASTODON_URL"),
+    )
+    logging.info("Explosm Bot: Created API instance")
+
+    schedule.every().hour.at(":00").do(toot_comic, api=api)
+    schedule.every().hour.at(":30").do(toot_comic, api=api)
+    logging.info("Explosm Bot: Created schedule")
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
